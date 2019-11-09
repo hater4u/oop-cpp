@@ -12,38 +12,7 @@ unsigned int fill_value_Unknown()
 	return res;
 }
 
-/*TritSet& TritSet::set(const unsigned int& position, const Trit& value)
-{
-	if (position > size_in_trits - 1)
-	{
-		if (value == Unknown) return *this;
-		extend(position);
-	}
-	unsigned int mask = 0x0000;
-	auto& selected_uint = tritset[position / trits_per_element];
-	short shift = (trits_per_element - position - 1) * 2;
-	switch (value)
-	{
-	case False:
-		mask = (mask | 3) << shift;
-		selected_uint &= ~mask;
-		break;
-	case Unknown:
-		mask = (mask | 1) << (shift + 1);
-		selected_uint &= ~mask;
-		mask = 0;
-		mask = (mask | 1) << shift;
-		selected_uint |= mask;
-		break;
-	case True:
-		mask = (mask | 3) << shift;
-		selected_uint |= mask;
-		break;
-	}
-	return *this;
-}*/
-
-Trit TritSet::get(const size_t& position) const//Вернуть & после мини тестов
+Trit TritSet::get(const size_t& position) const
 {
 	Trit result;
 	if (position > size_in_trits - 1) return Unknown;
@@ -86,16 +55,9 @@ TritSet::TritSet(const unsigned int size, const Trit fill_value)
 	}
 }
 
-TritSet::TritSet(const TritSet& other)
-{
-	this->tritset = other.tritset;
-//	this->tritset.clear;
-	this->size_in_trits = other.size_in_trits;
-}
-
 TritSet::reference& TritSet::reference::operator=(const reference& other)
 {
-	set_value(other.set->get(other.position)); //work???
+	set_value(other.set->get(other.position));
 	return (*this);
 }
 
@@ -138,21 +100,8 @@ void TritSet::reference::set_value(const Trit& value)
 
 TritSet::reference::operator Trit()
 {
-	//set->tritset[position]
 	return set->get(position);
 }
-
-/*bool TritSet::reference::operator==(const reference& obj)
-{
-
-	return false;
-}
-
-bool TritSet::reference::operator==(const Trit& value)
-{
-
-	return false;
-}*/
 
 bool TritSet::operator==(const TritSet& other)
 {
@@ -166,7 +115,6 @@ bool TritSet::operator==(const TritSet& other)
 TritSet& TritSet::operator&=(const TritSet& other)
 {
 	size_t max = size_in_trits > other.size_in_trits ? this->size_in_trits : other.size_in_trits;
-	// maybe need resize
 	Trit tmp1, tmp2;
 	for (size_t it = max; it > 0; it--)
 	{
@@ -174,15 +122,13 @@ TritSet& TritSet::operator&=(const TritSet& other)
 		tmp2 = other.get(it);
 		if ((tmp1 == False) || (tmp2 == False))
 		{
-			//this->set(it, False);
 			(*this)[it] = False;
 		}
 		else if ((tmp1 == Unknown) || (tmp2 == Unknown))
 		{
-			//this->set(it, Unknown);
 			(*this)[it] = Unknown;
 		}
-		else (*this)[it] = True;//this->set(it, True);
+		else (*this)[it] = True;
 	}
 	return (*this);
 }
@@ -190,7 +136,6 @@ TritSet& TritSet::operator&=(const TritSet& other)
 TritSet& TritSet::operator|=(const TritSet& other)
 {
 	size_t max = size_in_trits > other.size_in_trits ? this->size_in_trits : other.size_in_trits;
-	// maybe need resize
 	Trit tmp1, tmp2;
 	for (size_t it = max; it > 0; it--)
 	{
@@ -209,24 +154,39 @@ TritSet& TritSet::operator|=(const TritSet& other)
 	return (*this);
 }
 
-TritSet& TritSet::operator~()
+TritSet TritSet::operator~()
 {
+	TritSet tmp(*this);
 	for (size_t it = 0; it < size_in_trits; it++)
 	{
 		switch (TritSet::get(it))
 		{
 		case True:
-			(*this)[it] = False;
+			tmp[it] = False;
 			break;
 		case False:
-			(*this)[it] = True;
+			tmp[it] = True;
 			break;
 		case Unknown:
-			(*this)[it] = Unknown;
+			tmp[it] = Unknown;
 			break;
 		}
 	}
-	return (*this);
+	return tmp;
+}
+
+TritSet TritSet::operator&(const TritSet& other)
+{
+	TritSet tmp(*this);
+	tmp &= other;
+	return tmp;
+}
+
+TritSet TritSet::operator|(const TritSet& other)
+{
+	TritSet tmp(*this);
+	tmp |= other;
+	return tmp;
 }
 
 TritSet::reference::reference(TritSet* _set, size_t _position)
@@ -241,11 +201,6 @@ TritSet::reference TritSet::operator[] (const size_t position)
 {
 	return TritSet::reference(this, position);
 }
-
-/*TritSet::~TritSet()
-{
-	delete[] tritset;
-}*/ 
 
 void TritSet::extend(const size_t position) {
 	size_t size_need = position / trits_per_element + 1;

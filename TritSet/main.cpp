@@ -5,8 +5,6 @@ int main() {
 	TritSet set(33, True);
 	TritSet a(5);
 	TritSet b(True);
-//	set.set(5, False);
-//	set.set(13, Unknown);
 	set[0] = False;
 	set[50] = Unknown;
 	set[40] = False;
@@ -22,5 +20,7 @@ int main() {
 		std::cout << tmp << " ";
 	}
 	std::cout << std::endl;
+
+
 	return 0;
 }

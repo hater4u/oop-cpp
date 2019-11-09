@@ -14,16 +14,10 @@ private:
 	std::vector<unsigned int> tritset;
 	unsigned int size_in_trits;
 
-	//TritSet& set(const unsigned int& position, const Trit& value);
-
 	Trit get(const size_t& position) const;
 public:
 
 	TritSet(const unsigned int size = 0, const Trit fill_value = Unknown);
-
-	TritSet(const TritSet& other);
-
-	//~TritSet();
 
 	// CLASS reference
 	class reference  // proxy for an element
@@ -36,8 +30,7 @@ public:
 	public:
 		reference(TritSet* _set, size_t _position);
 
-		~reference() noexcept { // TRANSITION, ABI
-		}
+		~reference() noexcept {}
 
 		reference& operator=(const reference& other);
 
@@ -53,7 +46,11 @@ public:
 
 	TritSet& operator|=(const TritSet& other);
 
-	TritSet& operator~();
+	TritSet operator~();
+
+	TritSet operator&(const TritSet& other);
+
+	TritSet operator|(const TritSet& other);
 
 	reference operator[] (const size_t position);
 
