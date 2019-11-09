@@ -12,6 +12,15 @@ unsigned int fill_value_Unknown()
 	return res;
 }
 
+void TritSet::update_last()
+{
+	last = -1;
+	for (auto it = 0; it < size_in_trits; it++)
+	{
+		if ((*this)[it] != Unknown) last = it;
+	}
+}
+
 Trit TritSet::get(const size_t& position) const
 {
 	Trit result;
@@ -38,6 +47,7 @@ Trit TritSet::get(const size_t& position) const
 TritSet::TritSet(const unsigned int size, const Trit fill_value)
 {
 	this->size_in_trits = size;
+	last = size - 1;
 	size_t size_need = size / trits_per_element + ((size % trits_per_element) ? 1 : 0);
 
 	switch (fill_value) 
@@ -46,8 +56,9 @@ TritSet::TritSet(const unsigned int size, const Trit fill_value)
 		tritset.resize(size_need, 0);
 		break;
 	case Unknown:
-		tritset.resize(0);
-		this->size_in_trits = 0;
+		tritset.resize(size_need, fill_value_Unknown()); //maybe fix
+//		this->size_in_trits = 0;
+		last = -1;
 		break;
 	case True:
 		tritset.resize(size_need, UINT_MAX);
@@ -130,6 +141,7 @@ TritSet& TritSet::operator&=(const TritSet& other)
 		}
 		else (*this)[it] = True;
 	}
+	update_last();
 	return (*this);
 }
 
@@ -151,6 +163,7 @@ TritSet& TritSet::operator|=(const TritSet& other)
 		}
 		else (*this)[it] = False;
 	}
+	update_last();
 	return (*this);
 }
 
@@ -172,6 +185,7 @@ TritSet TritSet::operator~()
 			break;
 		}
 	}
+	tmp.update_last();
 	return tmp;
 }
 
@@ -206,4 +220,55 @@ void TritSet::extend(const size_t position) {
 	size_t size_need = position / trits_per_element + 1;
 	tritset.resize(size_need, fill_value_Unknown());
 	size_in_trits = position + 1;
+	update_last();
+}
+
+void TritSet::shrink()
+{
+	if (last >= 0)
+	{
+		size_t size_need = last / trits_per_element + 1;
+		tritset.resize(size_need);
+		size_in_trits = last + 1;
+		return;
+	}
+	tritset.resize(0);
+}
+
+void TritSet::trim(size_t lastIndex)
+{
+	size_t size_need = lastIndex / trits_per_element + 1;
+	tritset.resize(size_need);
+	size_in_trits = lastIndex + 1;
+	update_last();
+}
+
+size_t TritSet::capacity()
+{
+	return size_in_trits;
+}
+
+size_t TritSet::cardinality(Trit value)
+{
+	size_t count = 0;
+	for (auto it = 0; it < size_in_trits; it++)
+	{
+		if ((*this)[it] == value) count++;
+	}
+	return count;
+}
+
+std::unordered_map<Trit, int, std::hash<int>> TritSet::cardinality() //work??
+{
+	std::unordered_map<Trit, int, std::hash<int>> mymap;
+	for (auto it = 0; it < size_in_trits; it++) 
+	{
+		mymap[get(it)]++;
+	}
+	return mymap;
+}
+
+size_t TritSet::length()
+{
+	return last + 1;
 }

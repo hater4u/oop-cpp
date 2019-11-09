@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <unordered_map>
 
 enum Trit
 {
@@ -12,7 +13,10 @@ class TritSet
 {
 private:
 	std::vector<unsigned int> tritset;
-	unsigned int size_in_trits;
+	size_t size_in_trits;
+
+	size_t last;
+	void update_last();
 
 	Trit get(const size_t& position) const;
 public:
@@ -57,4 +61,16 @@ public:
 	Trit operator[] (const size_t position) const;
 
 	void extend(const size_t new_size);
+
+	void shrink();
+
+	void trim(size_t lastIndex);
+
+	size_t capacity();
+
+	size_t cardinality(Trit value);
+
+	std::unordered_map< Trit, int, std::hash<int> > cardinality();
+
+	size_t length();
 };
