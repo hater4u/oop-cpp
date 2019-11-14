@@ -5,7 +5,7 @@ size_t trits_per_element = (sizeof(unsigned int) * 8 / 2);
 unsigned int fill_value_Unknown()
 {
 	unsigned int res = 0;
-	for (auto it = 0; it < trits_per_element; it++)
+	for (size_t it = 0; it < trits_per_element; it++)
 	{
 		res |= 1 << (it * 2);
 	}
@@ -15,7 +15,7 @@ unsigned int fill_value_Unknown()
 void TritSet::update_last()
 {
 	last = -1;
-	for (auto it = 0; it < size_in_trits; it++)
+	for (size_t it = 0; it < size_in_trits; it++)
 	{
 		if ((*this)[it] != Unknown) last = it;
 	}
@@ -56,8 +56,7 @@ TritSet::TritSet(const unsigned int size, const Trit fill_value)
 		tritset.resize(size_need, 0);
 		break;
 	case Unknown:
-		tritset.resize(size_need, fill_value_Unknown()); //maybe fix
-//		this->size_in_trits = 0;
+		tritset.resize(size_need, fill_value_Unknown());
 		last = -1;
 		break;
 	case True:
@@ -84,10 +83,11 @@ void TritSet::reference::set_value(const Trit& value)
 	{
 		if (value == Unknown) return;
 		set->extend(position);
+		set->last = position;
 	}
 	size_t mask = 0x0000;
 	size_t selected_uint = position / trits_per_element;
-	short shift = (trits_per_element - position - 1) * 2;
+	size_t shift = (trits_per_element - position - 1) * 2;
 	switch (value)
 	{
 	case False:
@@ -125,9 +125,19 @@ bool TritSet::operator==(const TritSet& other)
 
 TritSet& TritSet::operator&=(const TritSet& other)
 {
-	size_t max = size_in_trits > other.size_in_trits ? this->size_in_trits : other.size_in_trits;
+	size_t max;
+	if (size_in_trits >= other.size_in_trits)
+	{
+		max = this->size_in_trits;
+	}
+	else
+	{
+		max = other.size_in_trits;
+		extend(max - 1);
+	}
 	Trit tmp1, tmp2;
-	for (size_t it = max; it > 0; it--)
+
+	for (size_t it = 0; it < max; it++)
 	{
 		tmp1 = this->get(it);
 		tmp2 = other.get(it);
@@ -141,15 +151,23 @@ TritSet& TritSet::operator&=(const TritSet& other)
 		}
 		else (*this)[it] = True;
 	}
-	update_last();
 	return (*this);
 }
 
 TritSet& TritSet::operator|=(const TritSet& other)
 {
-	size_t max = size_in_trits > other.size_in_trits ? this->size_in_trits : other.size_in_trits;
+	size_t max;
+	if (size_in_trits >= other.size_in_trits)
+	{
+		max = this->size_in_trits;
+	}
+	else
+	{
+		max = other.size_in_trits;
+		extend(max - 1);
+	}
 	Trit tmp1, tmp2;
-	for (size_t it = max; it > 0; it--)
+	for (size_t it = 0; it < max; it++)
 	{
 		tmp1 = this->get(it);
 		tmp2 = other.get(it);
@@ -163,7 +181,6 @@ TritSet& TritSet::operator|=(const TritSet& other)
 		}
 		else (*this)[it] = False;
 	}
-	update_last();
 	return (*this);
 }
 
@@ -185,7 +202,6 @@ TritSet TritSet::operator~()
 			break;
 		}
 	}
-	tmp.update_last();
 	return tmp;
 }
 
@@ -220,11 +236,11 @@ void TritSet::extend(const size_t position) {
 	size_t size_need = position / trits_per_element + 1;
 	tritset.resize(size_need, fill_value_Unknown());
 	size_in_trits = position + 1;
-	update_last();
 }
 
-void TritSet::shrink()
+void TritSet::shrink() 
 {
+	update_last();
 	if (last >= 0)
 	{
 		size_t size_need = last / trits_per_element + 1;
@@ -233,6 +249,7 @@ void TritSet::shrink()
 		return;
 	}
 	tritset.resize(0);
+	size_in_trits = last + 1;
 }
 
 void TritSet::trim(size_t lastIndex)
@@ -245,13 +262,14 @@ void TritSet::trim(size_t lastIndex)
 
 size_t TritSet::capacity()
 {
-	return size_in_trits;
+	return tritset.size() * trits_per_element;
 }
 
 size_t TritSet::cardinality(Trit value)
 {
+	update_last();
 	size_t count = 0;
-	for (auto it = 0; it < size_in_trits; it++)
+	for (size_t it = 0; it < last + 1; it++)
 	{
 		if ((*this)[it] == value) count++;
 	}
@@ -261,7 +279,7 @@ size_t TritSet::cardinality(Trit value)
 std::unordered_map<Trit, int, std::hash<int>> TritSet::cardinality() //work??
 {
 	std::unordered_map<Trit, int, std::hash<int>> mymap;
-	for (auto it = 0; it < size_in_trits; it++) 
+	for (size_t it = 0; it < size_in_trits; it++) 
 	{
 		mymap[get(it)]++;
 	}
@@ -270,5 +288,47 @@ std::unordered_map<Trit, int, std::hash<int>> TritSet::cardinality() //work??
 
 size_t TritSet::length()
 {
+	update_last();
 	return last + 1;
+}
+
+std::string TritSet::to_string()
+{
+	std::string str;
+	str.resize(capacity());
+	for (size_t it = 0; it < capacity(); it++)
+	{
+		switch ((*this)[it]) {
+		case False:
+			str[it] = '0';
+			break;
+		case True:
+			str[it] = '1';
+			break;
+		case Unknown:
+			str[it] = '?';
+			break;
+		}
+	}
+	return str;
+}
+
+void TritSet::print_tritset()
+{
+	for (size_t it = 0; it < capacity(); it++)
+	{
+		switch ((*this)[it]) {
+		case False:
+			std::cout << '0';
+			break;
+		case True:
+			std::cout << '1';
+			break;
+		case Unknown:
+			std::cout << '?';
+			break;
+		}
+		
+	}
+	std::cout << std::endl;
 }
