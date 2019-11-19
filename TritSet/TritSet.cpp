@@ -17,14 +17,14 @@ void TritSet::update_last()
 	last = -1;
 	for (size_t it = 0; it < size_in_trits; it++)
 	{
-		if ((*this)[it] != Unknown) last = it;
+		if ((*this)[it] != Trit::Unknown) last = it;
 	}
 }
 
 Trit TritSet::get(const size_t& position) const
 {
 	Trit result;
-	if (position > size_in_trits - 1) return Unknown;
+	if (position > size_in_trits - 1) return Trit::Unknown;
 	auto shift = (trits_per_element - position - 1) * 2;
 	auto selected_uint = tritset[position / trits_per_element];
 	unsigned int mask = (((0x0000 | 3) << shift) & selected_uint) >> shift;
@@ -32,13 +32,13 @@ Trit TritSet::get(const size_t& position) const
 	switch (mask)
 	{
 	case 0:
-		result = False;
+		result = Trit::False;
 		break;
 	case 1:
-		result = Unknown;
+		result = Trit::Unknown;
 		break;
 	case 3:
-		result = True;
+		result = Trit::True;
 		break;
 	}
 	return result;
@@ -52,14 +52,14 @@ TritSet::TritSet(const unsigned int size, const Trit fill_value)
 
 	switch (fill_value) 
 	{
-	case False: 
+	case Trit::False: 
 		tritset.resize(size_need, 0);
 		break;
-	case Unknown:
+	case Trit::Unknown:
 		tritset.resize(size_need, fill_value_Unknown());
 		last = -1;
 		break;
-	case True:
+	case Trit::True:
 		tritset.resize(size_need, UINT_MAX);
 		break;
 	}
@@ -81,7 +81,7 @@ void TritSet::reference::set_value(const Trit& value)
 {
 	if (position > set->size_in_trits - 1)
 	{
-		if (value == Unknown) return;
+		if (value == Trit::Unknown) return;
 		set->extend(position);
 		set->last = position;
 	}
@@ -90,18 +90,18 @@ void TritSet::reference::set_value(const Trit& value)
 	size_t shift = (trits_per_element - position - 1) * 2;
 	switch (value)
 	{
-	case False:
+	case Trit::False:
 		mask = (mask | 3) << shift;
 		set->tritset[selected_uint] &= ~mask;
 		break;
-	case Unknown:
+	case Trit::Unknown:
 		mask = (mask | 1) << (shift + 1);
 		set->tritset[selected_uint] &= ~mask;
 		mask = 0;
 		mask = (mask | 1) << shift;
 		set->tritset[selected_uint] |= mask;
 		break;
-	case True:
+	case Trit::True:
 		mask = (mask | 3) << shift;
 		set->tritset[selected_uint] |= mask;
 		break;
@@ -109,12 +109,12 @@ void TritSet::reference::set_value(const Trit& value)
 	return;
 }
 
-TritSet::reference::operator Trit()
+TritSet::reference::operator Trit() const
 {
 	return set->get(position);
 }
 
-bool TritSet::operator==(const TritSet& other)
+bool TritSet::operator==(const TritSet& other) const
 {
 	for (size_t it = 0; it < this->tritset.size(); it++)
 	{
@@ -141,15 +141,7 @@ TritSet& TritSet::operator&=(const TritSet& other)
 	{
 		tmp1 = this->get(it);
 		tmp2 = other.get(it);
-		if ((tmp1 == False) || (tmp2 == False))
-		{
-			(*this)[it] = False;
-		}
-		else if ((tmp1 == Unknown) || (tmp2 == Unknown))
-		{
-			(*this)[it] = Unknown;
-		}
-		else (*this)[it] = True;
+		(*this)[it] = tmp1 & tmp2;
 	}
 	return (*this);
 }
@@ -171,51 +163,43 @@ TritSet& TritSet::operator|=(const TritSet& other)
 	{
 		tmp1 = this->get(it);
 		tmp2 = other.get(it);
-		if ((tmp1 == True) || (tmp2 == True))
-		{
-			(*this)[it] = True;
-		}
-		else if ((tmp1 == Unknown) || (tmp2 == Unknown))
-		{
-			(*this)[it] = Unknown;
-		}
-		else (*this)[it] = False;
+		(*this)[it] = tmp1 | tmp2;
 	}
 	return (*this);
 }
 
-TritSet TritSet::operator~()
+TritSet operator~(const TritSet& arg)
 {
-	TritSet tmp(*this);
-	for (size_t it = 0; it < size_in_trits; it++)
+	TritSet tmp(arg);
+	for (size_t it = 0; it < arg.size(); it++)
 	{
-		switch (TritSet::get(it))
+		switch (arg[it])
 		{
-		case True:
-			tmp[it] = False;
+		case Trit::True:
+			tmp[it] = Trit::False;
 			break;
-		case False:
-			tmp[it] = True;
+		case Trit::False:
+			tmp[it] = Trit::True;
 			break;
-		case Unknown:
-			tmp[it] = Unknown;
+		case Trit::Unknown:
+			tmp[it] = Trit::Unknown;
 			break;
 		}
 	}
 	return tmp;
 }
 
-TritSet TritSet::operator&(const TritSet& other)
+TritSet operator&(const TritSet& arg1, const TritSet& arg2)
 {
-	TritSet tmp(*this);
-	tmp &= other;
+	TritSet tmp(arg1);
+	tmp &= arg2;
 	return tmp;
 }
 
-TritSet TritSet::operator|(const TritSet& other)
+TritSet operator|(const TritSet& arg1, const TritSet& arg2)
 {
-	TritSet tmp(*this);
-	tmp |= other;
+	TritSet tmp(arg1);
+	tmp |= arg2;
 	return tmp;
 }
 
@@ -260,7 +244,7 @@ void TritSet::trim(size_t lastIndex)
 	update_last();
 }
 
-size_t TritSet::capacity()
+size_t TritSet::capacity() const
 {
 	return tritset.size() * trits_per_element;
 }
@@ -276,9 +260,9 @@ size_t TritSet::cardinality(Trit value)
 	return count;
 }
 
-std::unordered_map<Trit, int, std::hash<int>> TritSet::cardinality() //work??
+std::unordered_map<Trit, int> TritSet::cardinality() const//work??
 {
-	std::unordered_map<Trit, int, std::hash<int>> mymap;
+	std::unordered_map<Trit, int> mymap;
 	for (size_t it = 0; it < size_in_trits; it++) 
 	{
 		mymap[get(it)]++;
@@ -292,20 +276,25 @@ size_t TritSet::length()
 	return last + 1;
 }
 
-std::string TritSet::to_string()
+size_t TritSet::size() const
+{
+	return size_in_trits;
+}
+
+std::string TritSet::to_string() const
 {
 	std::string str;
 	str.resize(capacity());
 	for (size_t it = 0; it < capacity(); it++)
 	{
 		switch ((*this)[it]) {
-		case False:
+		case Trit::False:
 			str[it] = '0';
 			break;
-		case True:
+		case Trit::True:
 			str[it] = '1';
 			break;
-		case Unknown:
+		case Trit::Unknown:
 			str[it] = '?';
 			break;
 		}
@@ -313,22 +302,66 @@ std::string TritSet::to_string()
 	return str;
 }
 
-void TritSet::print_tritset()
+void TritSet::print_tritset() const
 {
 	for (size_t it = 0; it < capacity(); it++)
 	{
 		switch ((*this)[it]) {
-		case False:
+		case Trit::False:
 			std::cout << '0';
 			break;
-		case True:
+		case Trit::True:
 			std::cout << '1';
 			break;
-		case Unknown:
+		case Trit::Unknown:
 			std::cout << '?';
 			break;
 		}
 		
 	}
 	std::cout << std::endl;
+}
+
+//Потритовые операторы
+Trit operator&(Trit arg1, Trit arg2)
+{
+	Trit tmp = arg1;
+	if ((arg1 == Trit::False) || (arg2 == Trit::False))
+	{
+		tmp = Trit::False;
+	}
+	else if ((arg1 == Trit::Unknown) || (arg2 == Trit::Unknown))
+	{
+		tmp = Trit::Unknown;
+	}
+	else tmp = Trit::True;
+	return tmp;
+}
+
+Trit operator|(Trit arg1, Trit arg2)
+{
+	Trit tmp = arg1;
+	if ((arg1 == Trit::True) || (arg2 == Trit::True))
+	{
+		tmp = Trit::True;
+	}
+	else if ((arg1 == Trit::Unknown) || (arg2 == Trit::Unknown))
+	{
+		tmp = Trit::Unknown;
+	}
+	else tmp = Trit::False;
+	return tmp;
+}
+
+Trit operator~(Trit arg1)
+{
+	switch (arg1)
+	{
+	case Trit::False:
+		return Trit::True;
+	case Trit::Unknown:
+		return Trit::Unknown;
+	case Trit::True:
+		return Trit::False;
+	}
 }

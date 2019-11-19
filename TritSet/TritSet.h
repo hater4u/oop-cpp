@@ -5,7 +5,9 @@
 #include <unordered_map>
 #include <string>
 
-enum Trit
+
+
+enum class Trit
 {
 	False = 0, // 0 и 1 можно было не переприсваивать
 	Unknown = 1,
@@ -24,18 +26,20 @@ private:
 	Trit get(const size_t& position) const;
 public:
 
-	TritSet(const unsigned int size = 0, const Trit fill_value = Unknown);
+	TritSet(const unsigned int size = 0, const Trit fill_value = Trit::Unknown);
 
 	// CLASS reference
 	class reference  // proxy for an element
 	{
+		friend TritSet;
 	private:
 		void set_value(const Trit& value);
 
 		TritSet* set;
 		size_t position;
-	public:
+
 		reference(TritSet* _set, size_t _position);
+	public:
 
 		~reference() noexcept {}
 
@@ -43,21 +47,15 @@ public:
 
 		reference& operator=(Trit other);
 
-		operator Trit();
+		operator Trit() const;
 
 	};
 
-	bool operator==(const TritSet& other);
+	bool operator==(const TritSet& other) const;
 
 	TritSet& operator&=(const TritSet& other);
 
 	TritSet& operator|=(const TritSet& other);
-
-	TritSet operator~();
-
-	TritSet operator&(const TritSet& other);
-
-	TritSet operator|(const TritSet& other);
 
 	reference operator[] (const size_t position);
 
@@ -69,15 +67,30 @@ public:
 
 	void trim(size_t lastIndex);
 
-	size_t capacity();
+	size_t capacity() const;
 
 	size_t cardinality(Trit value);
 
-	std::unordered_map< Trit, int, std::hash<int> > cardinality();
+	std::unordered_map< Trit, int > cardinality() const;
 
 	size_t length();
 
-	std::string to_string();
+	size_t size() const;
 
-	void print_tritset();
+	std::string to_string() const;
+
+	void print_tritset() const;
 };
+
+
+TritSet operator~(const TritSet& arg);
+
+TritSet operator&(const TritSet& arg1, const TritSet& arg2);
+
+TritSet operator|(const TritSet& arg1, const TritSet& arg2);
+
+Trit operator&(Trit arg1, Trit arg2);
+
+Trit operator|(Trit arg1, Trit arg2);
+
+Trit operator~(Trit arg1);
