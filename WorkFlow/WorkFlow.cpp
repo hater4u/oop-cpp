@@ -18,7 +18,6 @@ void WorkFlow::start(std::string fileName)
 	parsedData = parser.getData();
 	parsedSequence = parser.getSequence();
 	keys = parser.getKeys();
-	sort(keys.begin(), keys.end());
 
 	for (size_t it = 0; it != parsedSequence.size(); ++it)
 	{
