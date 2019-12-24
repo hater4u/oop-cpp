@@ -43,14 +43,6 @@ void Parser::parse(std::string fileName)
 		exit(1);
 	}
 
-	std::unordered_map <std::string, size_t> operations;
-	operations["readfile"] = 1;
-	operations["writefile"] = 1;
-	operations["grep"] = 1;
-	operations["sort"] = 0;
-	operations["replace"] = 2;
-	operations["dump"] = 1;
-
 	size_t number_of_line = 2;
 
 	while (true) 
@@ -100,25 +92,8 @@ void Parser::parse(std::string fileName)
 			exit(1);
 		}
 
-		if (operations.count(splited[2]) == 0) 
-		{
-			std::cerr << "EXCEPTION: command " << splited[2] << " is not found line #" << number_of_line << std::endl;
-			_fin.close();
-			exit(1);
-		}
-
-		if (operations[splited[2]] != splited.size() - 3) 
-		{
-			std::cerr << "EXCEPTION: invalid number of arguments for command " << splited[2] << ", expected " << operations[splited[2]] <<
-				", have " << splited.size() - 3 << " line #" << number_of_line << std::endl;
-			_fin.close();
-			exit(1); 
-		}
-
 		_parsedData[id] = std::vector<std::string>(splited.begin() + 2, splited.end());
 		_keys.push_back(id);
-		//splited.erase(splited.begin(), splited.begin() + 2);
-		//flow.setId(id, splited);
 		splited.clear();
 
 		number_of_line++;

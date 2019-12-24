@@ -6,6 +6,6 @@ class DumpBlock : public Common::IBlock
 public:
 	DumpBlock() = default;
 
-	std::string operation(std::vector<std::string> data) override;
+	std::string operation(const std::string& text, const std::vector<std::string>& data) override;
 };
 

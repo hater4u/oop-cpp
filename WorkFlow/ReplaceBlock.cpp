@@ -3,10 +3,14 @@
 
 static BlockMaker<ReplaceBlock> replaceMaker("replace");
 
-std::string ReplaceBlock::operation(std::vector<std::string> data)
+std::string ReplaceBlock::operation(const std::string &text, const std::vector<std::string> &data)
 {
+	if (text.empty() || data.empty() || data.size() > 2)
+	{
+		throw new std::exception("EXCEPTION: invalid arguments for replace");
+	}
 	std::string word1 = data[0], word2 = data[1];
-	std::string tmp = data[2];
+	std::string tmp = text;
 	int pos;
 	while (tmp.find(word1) != -1)
 	{

@@ -11,7 +11,7 @@ void WorkFlow::start(std::string fileName)
 	std::string result = "";
 	std::unordered_map<size_t, std::vector<std::string>> parsedData;
 	std::vector<size_t> parsedSequence;
-	BlockFactory blockfactory = BlockFactory::Instance();
+	BlockFactory &blockfactory = BlockFactory::Instance();
 	std::vector<size_t> keys;
 
 	parser.parse(fileName);
@@ -26,8 +26,7 @@ void WorkFlow::start(std::string fileName)
 			if (parsedSequence[it] == keys[j])
 			{
 				IBlock* command = blockfactory.createBlock(parsedData[keys[j]][0]);
-				parsedData[keys[j]].push_back(result);
-				result = command->operation(std::vector<std::string>(parsedData[keys[j]].begin() + 1, parsedData[keys[j]].end()));
+				result = command->operation(result, std::vector<std::string>(parsedData[keys[j]].begin() + 1, parsedData[keys[j]].end()));
 				delete command;
 				break;
 			}

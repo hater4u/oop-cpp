@@ -7,6 +7,11 @@ using namespace Common;
 int main()
 {
 	WorkFlow wf;
-	wf.start("workflow.txt");
+	try {
+		wf.start("workflow.txt");
+	}
+	catch (std::exception &ex) {
+		std::cerr << ex.what();
+	}
 	return 0;
 }

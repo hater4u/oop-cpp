@@ -6,6 +6,6 @@ class GrepBlock : public Common::IBlock
 public:
 	GrepBlock() = default;
 
-	std::string operation(std::vector<std::string> data) override;
+	std::string operation(const std::string& text, const std::vector<std::string>& data) override;
 };
 

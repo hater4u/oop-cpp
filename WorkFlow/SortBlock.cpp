@@ -4,18 +4,22 @@
 
 static BlockMaker<SortBlock> sortMaker("sort");
 
-std::string SortBlock::operation(std::vector<std::string> data)
+std::string SortBlock::operation(const std::string& text, const std::vector<std::string>& data)
 {
+	if (text.empty() || !data.empty())
+	{
+		throw new std::exception("EXCEPTION: invalid arguments for sort");
+	}
 	std::string resultStr, tmp = "";
 	std::vector<std::string> vec;
-	for (size_t it = 0; it != data[0].size(); ++it)
+	for (size_t it = 0; it != text.size(); ++it)
 	{
-		if (data[0][it] == '\n')
+		if (text[it] == '\n')
 		{
 			vec.push_back(tmp);
 			tmp.clear();
 		}
-		else tmp += data[0][it];
+		else tmp += text[it];
 	}
 	sort(vec.begin(), vec.end());
 

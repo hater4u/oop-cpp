@@ -13,7 +13,10 @@ namespace Common {
 
 	class BlockFactory
 	{
+		BlockFactory() = default;
 	public:
+		BlockFactory(const BlockFactory&) = delete;
+		BlockFactory& operator = (const BlockFactory&) = delete;
 		static BlockFactory& Instance();
 
 		~BlockFactory() = default;
